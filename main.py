@@ -148,16 +148,9 @@ def bestMove(board):
     return bestColumn
 
 
-def setAiPlay(board):
-    setPlay(board, bestMove(board), IA)
-
-    if winning(board, IA):
-        match = False
-
-
 def newRound(board, column, piece):
-    if (setPlay(board, int(column), piece)):
-        setAiPlay(board)
+    if (setPlay(board, int(column), piece) and not winning(board, piece)):
+        setPlay(board, bestMove(board), IA)
 
 
 def getSize():
