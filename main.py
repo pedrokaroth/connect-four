@@ -93,10 +93,22 @@ def getSize():
 
 
 def winning(piece):
-    winning = 0
     for column in range(COLUMN_COUNT - 3):
         for row in range(ROW_COUNT):
             if board[row][column] == piece and board[row][column + 1] == piece and board[row][column + 2] == piece and board[row][column + 3] == piece:
+                return True
+
+        for row in range(ROW_COUNT - 3):
+            if board[row][column] == piece and board[row + 1][column + 1] == piece and board[row + 2][column + 2] == piece and board[row + 3][column + 3] == piece:
+                return True
+
+        for row in range(3, ROW_COUNT):
+            if board[row][column] == piece and board[row - 1][column + 1] == piece and board[row - 2][column + 2] == piece and board[row - 3][column + 3] == piece:
+                return True
+
+    for column in range(COLUMN_COUNT):
+        for row in range(ROW_COUNT-3):
+            if board[row][column] == piece and board[row + 1][column] == piece and board[row + 2][column] == piece and board[row + 3][column] == piece:
                 return True
 
 
