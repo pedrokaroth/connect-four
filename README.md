@@ -1,4 +1,4 @@
-# COUNT-FOUR
+# CONNECT-FOUR
 
 ## Installation
 
