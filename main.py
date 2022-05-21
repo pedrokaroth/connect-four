@@ -2,9 +2,10 @@ import numpy
 import pygame
 import sys
 import math
+import random
 
 PLAYER = 1
-ALPHAB = 2
+IA = 2
 
 COLOR_BLUE = (0, 0, 255)
 COLOR_BLACK = (0, 0, 0)
@@ -13,7 +14,7 @@ COLOR_YELLOW = (255, 255, 0)
 
 ROW_COUNT = 6
 COLUMN_COUNT = 7
-
+WINDOW_COUNT = 4
 SQUARESIZE = 100
 
 match = True
@@ -32,7 +33,7 @@ def newBoard():
     return numpy.zeros((6, 7))
 
 
-def setLocation(row, col, piece):
+def setLocation(board, row, col, piece):
     if row is False:
         return row
 
@@ -40,11 +41,11 @@ def setLocation(row, col, piece):
     return True
 
 
-def hasVacant(col):
+def hasLocation(board, col):
     return board[5][col] == 0
 
 
-def nextRow(col):
+def nextRow(board, col):
     for r in range(6):
         if board[r][col] == 0:
             return r
@@ -72,17 +73,91 @@ def showBoard():
     pygame.display.update()
 
 
-def setPlay(column, piece):
-    if (not hasVacant(column)):
+def setPlay(board, column, piece):
+    if (not hasLocation(board, column)):
         return False
 
-    return setLocation(nextRow(column), column, piece)
+    return setLocation(board, nextRow(board, column), column, piece)
 
 
-def newRound(column, piece):
-    if (setPlay(int(column), piece)):
-        print('ia')
-        # TODO colocar a ia para jogar
+def evaluateWindow(window):
+    score = 0
+    if window.count(IA) == 4:
+        score += 1000
+    if window.count(IA) == 3 and window.count(0) == 1:
+        score += 500
+    elif window.count(IA) == 2 and window.count(0) == 2:
+        score += 100
+
+    if window.count(PLAYER) == 3 and window.count(0) == 1:
+        score -= 800
+    return score
+
+
+def scorePosition(board):
+    score = 0
+    center = [int(i) for i in list(board[:, COLUMN_COUNT // 2])]
+    score += center.count(IA) * 6
+
+    for row in range(ROW_COUNT):
+        rows = [int(i) for i in list(board[row, :])]
+        for column in range(COLUMN_COUNT - 3):
+            window = rows[column: column + WINDOW_COUNT]
+            score += evaluateWindow(window)
+
+    for column in range(COLUMN_COUNT):
+        columns = [int(i) for i in list(board[:, column])]
+        for row in range(ROW_COUNT - 3):
+            window = columns[row: row + WINDOW_COUNT]
+            score += evaluateWindow(window)
+
+    for row in range(ROW_COUNT - 3):
+        for column in range(COLUMN_COUNT - 3):
+            window = [board[row + i][column + i] for i in range(WINDOW_COUNT)]
+            score += evaluateWindow(window)
+
+    for row in range(ROW_COUNT - 3):
+        for column in range(COLUMN_COUNT - 3):
+            window = [board[row+3-i][column+i] for i in range(WINDOW_COUNT)]
+            score += evaluateWindow(window)
+    return score
+
+
+def getValidLocations():
+    locations = []
+    for column in range(COLUMN_COUNT):
+        if hasLocation(board, column):
+            locations.append(column)
+    return locations
+
+
+def bestMove(board):
+    locations = getValidLocations()
+    bestScore = -100000
+    bestColumn = random.choice(locations)
+    for column in locations:
+        tmpBoard = board.copy()
+        setPlay(tmpBoard, column, IA)
+        score = scorePosition(tmpBoard)
+
+        if score > bestScore:
+            bestScore = score
+            bestColumn = column
+
+        print(str(column) + ' ' + str(score))
+    return bestColumn
+
+
+def setAiPlay(board):
+    setPlay(board, bestMove(board), IA)
+
+    if winning(board, IA):
+        match = False
+
+
+def newRound(board, column, piece):
+    if (setPlay(board, int(column), piece)):
+        setAiPlay(board)
 
 
 def getSize():
@@ -92,7 +167,7 @@ def getSize():
     )
 
 
-def winning(piece):
+def winning(board, piece):
     for column in range(COLUMN_COUNT - 3):
         for row in range(ROW_COUNT):
             if board[row][column] == piece and board[row][column + 1] == piece and board[row][column + 2] == piece and board[row][column + 3] == piece:
@@ -142,9 +217,12 @@ while match:
             mouseHover(event)
 
         if (event.type == pygame.MOUSEBUTTONDOWN):
-            newRound(math.floor((event.pos[0] / SQUARESIZE)), PLAYER)
-            if winning(PLAYER):
-                showText('Você ganhou')
+            newRound(board, math.floor((event.pos[0] / SQUARESIZE)), PLAYER)
+            if winning(board, PLAYER):
+                showText('Você Ganhou')
+                match = False
+            elif winning(board, IA):
+                showText('Você Perdeu')
                 match = False
 
     showBoard()
