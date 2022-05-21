@@ -3,8 +3,8 @@ import pygame
 import sys
 import math
 
-PLAYER_ROUNDS = 1
-ALPHAB_ROUNDS = 2
+PLAYER = 1
+ALPHAB = 2
 
 COLOR_BLUE = (0, 0, 255)
 COLOR_BLACK = (0, 0, 0)
@@ -21,13 +21,19 @@ turn = 0
 
 pygame.init()
 
+FONT = pygame.font.SysFont("Helvetica", 75)
+
+
+def showText(text, color=COLOR_YELLOW):
+    screen.blit(FONT.render(text, 1, color), (40, 10))
+
 
 def newBoard():
     return numpy.zeros((6, 7))
 
 
-def setLocation(row, col, rounds):
-    board[row][col] = rounds
+def setLocation(row, col, piece):
+    board[row][col] = piece
 
 
 def hasVacant(col):
@@ -60,18 +66,18 @@ def showBoard():
     pygame.display.update()
 
 
-def setPlay(column, rounds):
+def setPlay(column, piece):
     if (not hasVacant(column)):
         return False
 
-    setLocation(nextRow(column), column, rounds)
+    setLocation(nextRow(column), column, piece)
     return True
 
 
-def newRound(column, rounds):
+def newRound(column, piece):
     done = False
     while not done:
-        if (setPlay(int(column), rounds)):
+        if (setPlay(int(column), piece)):
             done = True
 
 
@@ -80,6 +86,14 @@ def getSize():
         COLUMN_COUNT * SQUARESIZE,
         (ROW_COUNT+1) * SQUARESIZE
     )
+
+
+def winning(piece):
+    winning = 0
+    for column in range(COLUMN_COUNT - 3):
+        for row in range(ROW_COUNT):
+            if board[row][column] == piece and board[row][column + 1] == piece and board[row][column + 2] == piece and board[row][column + 3] == piece:
+                return True
 
 
 def getRadius():
@@ -112,7 +126,12 @@ while match:
             mouseHover(event)
 
         if (event.type == pygame.MOUSEBUTTONDOWN):
-            print('click:' + str(math.floor((event.pos[0] / SQUARESIZE))))
-            newRound(math.floor((event.pos[0] / SQUARESIZE)), PLAYER_ROUNDS)
+            newRound(math.floor((event.pos[0] / SQUARESIZE)), PLAYER)
+            if winning(PLAYER):
+                showText('Você ganhou')
+                match = False
 
     showBoard()
+
+    if not match:
+        pygame.time.wait(5000)
