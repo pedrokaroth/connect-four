@@ -33,7 +33,11 @@ def newBoard():
 
 
 def setLocation(row, col, piece):
+    if row is False:
+        return row
+
     board[row][col] = piece
+    return True
 
 
 def hasVacant(col):
@@ -44,6 +48,8 @@ def nextRow(col):
     for r in range(6):
         if board[r][col] == 0:
             return r
+
+    return False
 
 
 def showBoard():
@@ -70,15 +76,13 @@ def setPlay(column, piece):
     if (not hasVacant(column)):
         return False
 
-    setLocation(nextRow(column), column, piece)
-    return True
+    return setLocation(nextRow(column), column, piece)
 
 
 def newRound(column, piece):
-    done = False
-    while not done:
-        if (setPlay(int(column), piece)):
-            done = True
+    if (setPlay(int(column), piece)):
+        print('ia')
+        # TODO colocar a ia para jogar
 
 
 def getSize():
